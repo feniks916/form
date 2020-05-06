@@ -6,7 +6,6 @@ import { Input, Button, Checkbox } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import { Formik, FieldArray, Field } from 'formik';
 import * as Yup from 'yup';
-import * as axios from 'axios';
 import classes from './App.module.scss';
 import postData from './API';
 
@@ -21,6 +20,7 @@ const FormComponent = () => {
           age: '',
           password: '',
           repeatPassword: '',
+          acceptTerms: false,
           skills: [{ id: 0, value: '' }],
         }}
         onSubmit={async values => {
@@ -31,7 +31,8 @@ const FormComponent = () => {
             age: values.age,
             password: values.password,
             repeatPassword: values.repeatPassword,
-            skills: values.skills.filter(p => p.value !== ''),
+            acceptTerms: values.acceptTerms,
+            skills: values.skills.filter(el => el.value !== ''),
           }).then(response => setreqData(response.data));
         }}
         validationSchema={Yup.object().shape({
@@ -46,9 +47,10 @@ const FormComponent = () => {
             .max(40, 'Password is too long - should be 40 chars maximum.')
             .matches(
               /(?=.*[a-z])(?=.*[A-Z])(?=.*?[0-9])/,
-              'Исплользуй 1 цифру 1 заглавную и одну строчную букву'
+              'Исплользуй 1 цифру 1 заглавную и одну строчную букву',
             ),
           repeatPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Пароли не совпадают'),
+          acceptTerms: Yup.bool().oneOf([true], 'Accept Terms & Conditions is required'),
         })}
       >
         {props => {
@@ -61,6 +63,7 @@ const FormComponent = () => {
             handleBlur,
             handleSubmit,
             handleReset,
+            setFieldValue,
           } = props;
           return (
             <form onSubmit={handleSubmit} className={classes.form}>
@@ -129,21 +132,20 @@ const FormComponent = () => {
               <FieldArray name="skills">
                 {({ push, remove }) => (
                   <div>
-                    {values.skills
-                      .map((p, index) => (
-                        <div key={p.id} className={classes.skillbox}>
-                          <span className={classes.span}>Skill</span>
-                          <div className={classes.fieldArea}>
-                            <Field name={`skills[${index}].value`} placeholder="Enter your skill" />
-                            {values.skills.length > 1 && (
-                              <CloseCircleOutlined
-                                onClick={() => remove(index)}
-                                className={classes.skills}
-                              />
-                            )}
-                          </div>
+                    {values.skills.map((el, index) => (
+                      <div key={el.id} className={classes.skillbox}>
+                        <span className={classes.span}>Skill</span>
+                        <div className={classes.fieldArea}>
+                          <Field name={`skills[${index}].value`} placeholder="Enter your skill" />
+                          {values.skills.length > 1 && (
+                            <CloseCircleOutlined
+                              onClick={() => remove(index)}
+                              className={classes.skills}
+                            />
+                          )}
                         </div>
-                      ))}
+                      </div>
+                    ))}
                     <Button
                       type="button"
                       onClick={() => push({ id: Number(values.skills.length), value: '' })}
@@ -155,7 +157,15 @@ const FormComponent = () => {
               </FieldArray>
               <div className={classes.checkBox}>
                 <div>
-                  <Checkbox />
+                  <Checkbox
+                    type="checkbox"
+                    id="acceptTerms"
+                    onChange={event => setFieldValue('acceptTerms', !values.acceptTerms)}
+                    checked={values.acceptTerms}
+                  />
+                  {errors.acceptTerms && touched.acceptTerms && (
+                    <div className={classes.feedback}>{errors.acceptTerms}</div>
+                  )}
                 </div>
                 <span className={classes.span}>Согласен с условиями</span>
               </div>

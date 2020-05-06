@@ -18,18 +18,18 @@ app.use(bodyParser.json());
 
 app.post('/sign-up', (request, response) => {
   const req = request.body;
-  arr.push(req);
   value = arr.filter((el) => el.email === request.body.email);
-  console.log(value);
-  if (value.length === 1) {
+  if (value.length === 0) {
     response.send('status 200');
   }
-  if (value.length > 1) {
+  if (value.length > 0) {
     response.send('error 500');
   }
+  arr.push(req);
 });
 
 app.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`We are live on ${port}`);
 });
 
